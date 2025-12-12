@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Student Placement Predictor</title>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: 20px auto; }
+    label { display:block; margin-top:8px; }
+    input[type=text], input[type=number] { width:100%; padding:8px; }
+    .half { width:48%; display:inline-block; }
+    .btn { margin-top: 12px; padding:10px 14px; }
+  </style>
+</head>
+<body>
+  <h2>Student Placement Predictor</h2>
+  <form action="predict.php" method="post">
+    <!-- For brevity show only a few fields; repeat for all FIELDS in exact order -->
+    <label>10th Percentage<input type="number" step="any" name="tenth_percentage" required></label>
+    <label>12th Percentage<input type="number" step="any" name="twelfth_percentage" required></label>
+    <label>CGPA<input type="number" step="any" name="cgpa" required></label>
+    <label>Basic Aptitude Score<input type="number" step="any" name="basic_aptitude" required></label>
+    <!-- ... add remaining fields exactly matching API fields ... -->
+    <label>Personality Score<input type="number" step="any" name="personality_score" required></label>
+
+    <button type="submit" class="btn">Get Prediction</button>
+  </form>
+</body>
+</html>

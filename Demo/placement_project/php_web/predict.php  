@@ -1,0 +1,80 @@
+<?php
+// predict.php
+// Make sure error reporting is enabled for debugging during development
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Build JSON payload from POST fields
+$fields = [
+ 'tenth_percentage','twelfth_percentage','cgpa','basic_aptitude',
+ 'icp_grade','oops_grade','dsa_grade','daa_grade','dbms_grade','os_grade',
+ 'cn_grade','iwt_grade','cpmad_grade','aj_grade','awt_grade',
+ 'communication_skill','aptitude_training','coding_training',
+ 'tcs_google_score','amcat_score','hackathon_level','leetcode_solved',
+ 'github_activity','no_projects','no_internships','research_papers',
+ 'attendance','mock_interview','certifications_score','personality_score'
+];
+
+$payload = [];
+foreach ($fields as $f) {
+    if (!isset($_POST[$f])) {
+        // For safety, you might set default or handle error
+        $payload[$f] = 0;
+    } else {
+        $payload[$f] = $_POST[$f];
+    }
+}
+
+// Convert to JSON
+$json_data = json_encode($payload);
+
+// URL of the Flask API
+$api_url = "http://127.0.0.1:5000/predict";  // change if API hosted elsewhere
+
+$ch = curl_init($api_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($json_data)
+]);
+
+$response = curl_exec($ch);
+$err = curl_error($ch);
+curl_close($ch);
+
+if ($err) {
+    echo "cURL Error: $err";
+    exit;
+}
+
+$result = json_decode($response, true);
+?>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Prediction Result</title>
+</head>
+<body>
+  <h2>Prediction Result</h2>
+  <?php
+    if (isset($result['error'])) {
+        echo "<p style='color:red;'>Error: " . htmlspecialchars($result['error']) . "</p>";
+    } else {
+        $pred = $result['prediction'];
+        if ($pred == 1) {
+            echo "<p style='color:green; font-weight:bold;'>Prediction: SELECTED for Placement ✔</p>";
+        } else {
+            echo "<p style='color:red; font-weight:bold;'>Prediction: NOT Selected ❌</p>";
+        }
+        if (isset($result['probability'])) {
+            echo "<pre>Probability: " . htmlspecialchars(json_encode($result['probability'])) . "</pre>";
+        }
+    }
+  ?>
+
+  <a href="index.php">Back</a>
+</body>
+</html>
