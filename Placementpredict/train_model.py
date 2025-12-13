@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------
 #  TRAIN MODEL SCRIPT (train_model.py)
-#  Converted from your Google Colab notebook into .py format
+#  FIXED VERSION – FEATURE MISMATCH SOLVED
 # ---------------------------------------------------------------
 
 import pandas as pd
@@ -24,78 +24,113 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 # ---------------------------------------------------------------
 # 1. LOAD DATASET
 # ---------------------------------------------------------------
-csv_path = "Dataset/student_placement_records.csv"     # UPDATE PATH IF NEEDED
+csv_path = "Dataset/student_placement_records.csv"
 
 df = pd.read_csv(csv_path)
-print("Dataset Loaded Successfully!")
-print(df.head(), "\n")
+print("Dataset Loaded Successfully!\n")
+print(df.head())
 print(df.info())
 
 # ---------------------------------------------------------------
-# 2. ENCODE CATEGORICAL COLUMNS
+# 2. DEFINE FINAL FEATURE LIST (30 FEATURES)
+# ---------------------------------------------------------------
+FEATURE_COLUMNS = [
+    "tenth_percentage",
+    "twelfth_percentage",
+    "cgpa",
+    "basic_aptitude",
+    "icp_grade",
+    "oops_grade",
+    "dsa_grade",
+    "daa_grade",
+    "dbms_grade",
+    "os_grade",
+    "cn_grade",
+    "iwt_grade",
+    "cpmad_grade",
+    "aj_grade",
+    "awt_grade",
+    "communication_skill",
+    "aptitude_training",
+    "coding_training",
+    "tcs_google_score",
+    "amcat_score",
+    "hackathon_level",
+    "leetcode_solved",
+    "github_activity",
+    "no_projects",
+    "no_internships",
+    "research_papers",
+    "attendance",
+    "mock_interview",
+    "certifications_score",
+    "personality_score"
+]
+
+TARGET_COLUMN = "placement_status"
+
+# ---------------------------------------------------------------
+# 3. ENCODE CATEGORICAL COLUMNS
 # ---------------------------------------------------------------
 le = LabelEncoder()
-
 for col in df.columns:
-    if df[col].dtype == 'object':          # Convert object/string columns
-        df[col] = le.fit_transform(df[col])
+    if df[col].dtype == "object":
+        df[col] = le.fit_transform(df[col].astype(str))
 
 df = df.fillna(0)
 
 # ---------------------------------------------------------------
-# 3. SPLIT FEATURES & TARGET
+# 4. SELECT FEATURES & TARGET (IMPORTANT FIX)
 # ---------------------------------------------------------------
-target_column = "placement_status"         # dataset uses lowercase column
-X = df.drop(target_column, axis=1)
-y = df[target_column]
+X = df[FEATURE_COLUMNS]
+y = df[TARGET_COLUMN]
 
 # ---------------------------------------------------------------
-# 4. TRAIN-TEST SPLIT
+# 5. TRAIN-TEST SPLIT
 # ---------------------------------------------------------------
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
 )
 
 # ---------------------------------------------------------------
-# 5. SCALING
+# 6. SCALING
 # ---------------------------------------------------------------
 scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
 # ---------------------------------------------------------------
-# 6. TRAIN MULTIPLE MODELS
+# 7. TRAIN MODELS
 # ---------------------------------------------------------------
-print("\nTraining Models...\n")
+print("\nTraining models...\n")
 
-lr = LogisticRegression()
-lr.fit(X_train, y_train)
-pred_lr = lr.predict(X_test)
+lr = LogisticRegression(max_iter=1000)
+lr.fit(X_train_scaled, y_train)
+pred_lr = lr.predict(X_test_scaled)
 
 dt = DecisionTreeClassifier()
-dt.fit(X_train, y_train)
-pred_dt = dt.predict(X_test)
+dt.fit(X_train_scaled, y_train)
+pred_dt = dt.predict(X_test_scaled)
 
 rf = RandomForestClassifier()
-rf.fit(X_train, y_train)
-pred_rf = rf.predict(X_test)
+rf.fit(X_train_scaled, y_train)
+pred_rf = rf.predict(X_test_scaled)
 
 svm = SVC()
-svm.fit(X_train, y_train)
-pred_svm = svm.predict(X_test)
+svm.fit(X_train_scaled, y_train)
+pred_svm = svm.predict(X_test_scaled)
 
 knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-pred_knn = knn.predict(X_test)
+knn.fit(X_train_scaled, y_train)
+pred_knn = knn.predict(X_test_scaled)
 
 gb = GradientBoostingClassifier()
-gb.fit(X_train, y_train)
-pred_gb = gb.predict(X_test)
+gb.fit(X_train_scaled, y_train)
+pred_gb = gb.predict(X_test_scaled)
 
 # ---------------------------------------------------------------
-# 7. ACCURACY CALCULATIONS
+# 8. ACCURACY COMPARISON
 # ---------------------------------------------------------------
-print("\n--- MODEL ACCURACIES ---")
 accuracies = {
     "Logistic Regression": accuracy_score(y_test, pred_lr),
     "Decision Tree": accuracy_score(y_test, pred_dt),
@@ -105,48 +140,52 @@ accuracies = {
     "Gradient Boosting": accuracy_score(y_test, pred_gb)
 }
 
-for model, score in accuracies.items():
-    print(f"{model}: {score * 100:.2f}%")
+print("\n--- MODEL ACCURACIES ---")
+for model, acc in accuracies.items():
+    print(f"{model}: {acc*100:.2f}%")
 
 # ---------------------------------------------------------------
-# 8. SAVE BEST MODEL (Gradient Boosting)
+# 9. SAVE MODEL, SCALER & FEATURE LIST
 # ---------------------------------------------------------------
 os.makedirs("model", exist_ok=True)
 
 joblib.dump(gb, "model/placement_model.pkl")
 joblib.dump(scaler, "model/scaler.pkl")
+joblib.dump(FEATURE_COLUMNS, "model/feature_columns.pkl")
 
-print("\nSaved Model → model/placement_model.pkl")
-print("Saved Scaler → model/scaler.pkl")
+print("\nSaved files:")
+print("✔ model/placement_model.pkl")
+print("✔ model/scaler.pkl")
+print("✔ model/feature_columns.pkl")
 
 # ---------------------------------------------------------------
-# 9. PLOT MODEL COMPARISON GRAPH
+# 10. ACCURACY BAR GRAPH
 # ---------------------------------------------------------------
 plt.figure(figsize=(10, 5))
-plt.bar(list(accuracies.keys()), list(accuracies.values()))
+plt.bar(accuracies.keys(), accuracies.values())
 plt.xticks(rotation=45)
 plt.ylabel("Accuracy")
 plt.title("Model Accuracy Comparison")
 plt.tight_layout()
-plt.savefig("model_accuracy.png")     # Save graph to folder
-print("\nSaved Graph → model_accuracy.png")
+plt.savefig("model_accuracy.png")
 
 # ---------------------------------------------------------------
-# 10. FEATURE IMPORTANCE (RANDOM FOREST)
+# 11. FEATURE IMPORTANCE (RANDOM FOREST)
 # ---------------------------------------------------------------
 importances = rf.feature_importances_
 indices = np.argsort(importances)[::-1]
 
 plt.figure(figsize=(12, 6))
 plt.title("Feature Importance (Random Forest)")
-plt.bar(range(X.shape[1]), importances[indices])
-plt.xticks(range(X.shape[1]), X.columns[indices], rotation=90)
+plt.bar(range(len(FEATURE_COLUMNS)), importances[indices])
+plt.xticks(range(len(FEATURE_COLUMNS)),
+           [FEATURE_COLUMNS[i] for i in indices],
+           rotation=90)
 plt.tight_layout()
 plt.savefig("feature_importance_rf.png")
-print("Saved Graph → feature_importance_rf.png")
 
 # ---------------------------------------------------------------
-# 11. CONFUSION MATRIX (GB MODEL)
+# 12. CONFUSION MATRIX (GRADIENT BOOSTING)
 # ---------------------------------------------------------------
 cm = confusion_matrix(y_test, pred_gb)
 
@@ -157,6 +196,5 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.tight_layout()
 plt.savefig("confusion_matrix_gb.png")
-print("Saved Graph → confusion_matrix_gb.png")
 
 print("\nTRAINING COMPLETED SUCCESSFULLY ✔\n")
