@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Student Placement Prediction</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,23 +25,19 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-
         label {
             display: block;
             font-weight: 600;
             margin-top: 12px;
             font-size: 14px;
         }
-
         input, select {
             width: 100%;
             padding: 10px;
             margin-top: 6px;
             border: 1px solid #ccc;
             border-radius: 6px;
-            font-size: 14px;
         }
-
         button {
             width: 100%;
             padding: 12px;
@@ -54,10 +49,7 @@
             border-radius: 6px;
             cursor: pointer;
         }
-
-        button:hover {
-            background: #2f54d3;
-        }
+        button:hover { background: #2f54d3; }
 
         .result-box {
             margin-top: 25px;
@@ -67,16 +59,8 @@
             text-align: center;
             border-radius: 8px;
         }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .fail {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        .success { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 
@@ -85,7 +69,6 @@
 <div class="header">Student Placement Prediction</div>
 
 <div class="container">
-
 <form action="/predict" method="post">
 
     <label>CGPA</label>
@@ -98,7 +81,7 @@
     <input type="number" name="Projects" required>
 
     <label>Workshops / Certifications</label>
-    <input type="number" name="Workshops/Certifications" required>
+    <input type="number" name="Workshops_Certifications" required>
 
     <label>Aptitude Test Score</label>
     <input type="number" name="AptitudeTestScore" required>
@@ -107,13 +90,13 @@
     <input type="number" step="any" name="SoftSkillsRating" required>
 
     <label>Extracurricular Activities</label>
-    <select name="ExtracurricularActivities" required>
+    <select name="ExtracurricularActivities">
         <option value="1">Yes</option>
         <option value="0">No</option>
     </select>
 
     <label>Placement Training</label>
-    <select name="PlacementTraining" required>
+    <select name="PlacementTraining">
         <option value="1">Yes</option>
         <option value="0">No</option>
     </select>
@@ -134,6 +117,5 @@
 {% endif %}
 
 </div>
-
 </body>
 </html>
